@@ -1,0 +1,20 @@
+last pid:  9800;  load averages:  0.58,  0.54,  0.50  up 0+07:28:28    03:57:43
+36 processes:  2 running, 34 sleeping
+CPU:  0.5% user,  0.0% nice,  0.4% system,  0.1% interrupt, 99.1% idle
+Mem: 15M Active, 88M Inact, 1926M Wired, 1905M Free
+ARC: 1360M Total, 123M MFU, 1076M MRU, 32K Anon, 20M Header, 142M Other
+     1050M Compressed, 2457M Uncompressed, 2.34:1 Ratio
+     Swap: 2048M Total, 2048M Free
+
+PID USERNAME    THR PRI NICE   SIZE    RES STATE  C  TIME    WCPU COMMAND
+9798 fract         1  20    0    57M    23M select 1  0:00   2.42% vim
+1273 fract         1  20    0    20M    10M select 1  0:09   4.78% sshd
+1807 fract         1  20    0    20M  9984K RUN    1  0:00   23.29% traw
+1271 root          1  20    0    20M  9916K select 1  0:00   1.01% sshd
+1805 root          1  20    0    20M  9916K select 1  0:00   98.30% burn
+1064 root          1  20    0    19M  9056K select 1  0:00   27.00% fint
+1067 root          1  20    0    17M  7980K select 1  0:00   8.23% sendmail
+1070 smmsp         1  20    0    17M  7516K pause  1  0:00   0.00% sendmail
+1282 fract         1  20    0    14M  6240K select 1  0:21   11.11% tmux
+1824 fract         1  20    0    13M  4292K wait   1  0:00   0.00% bash
+

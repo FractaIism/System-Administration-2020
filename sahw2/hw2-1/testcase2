@@ -1,0 +1,78 @@
+last pid: 16227;  load averages:  0.16,  0.24,  0.23  up 1+21:05:55    16:24:07
+68 processes:  1 running, 67 sleeping
+CPU:  0.2% user,  0.0% nice,  0.4% system,  0.0% interrupt, 99.4% idle
+Mem: 84M Active, 65M Inact, 32K Laundry, 3230M Wired, 9825K Buf, 12G Free
+ARC: 1875M Total, 1004M MFU, 146M MRU, 300K Anon, 26M Header, 699M Other
+     364M Compressed, 1118M Uncompressed, 3.07:1 Ratio
+Swap: 2048M Total, 182M Used, 1866M Free, 8% Inuse
+
+  PID USERNAME    THR PRI NICE   SIZE    RES STATE    C   TIME    WCPU COMMAND
+16217  18491        1  20    0    75M    40M select   2   0:00   0.00% vim
+14151 root          1  20    0    35M    21M select   1   0:00   8.21% nrpe3
+  814 ntpd          1  20    0    18M    18M select   2   0:07   0.00% ntpd
+ 9573  18491        1  20    0    41M  6824K select   0   0:07   0.00% sshd
+40185 kuohh         1  20    0    41M  6728K select   3   0:00   3.84% sshd
+ 9507  18491        1  20    0    41M  6612K select   2   0:00   9.22% sshd
+40251 kuohh         1  20    0    41M  6576K select   1   0:01   0.00% sshd
+15653 hywu1337      1  52    0    41M    1M select   0   0:00   4.23% sshd
+15718 hywu1337      1  20    0    41M    1M select   0   0:00   0.00% sshd
+13101 hywu1337      1  52    0    41M    1M select   0   0:00   8.28% sshd
+13166 hywu1337      1  20    0    41M    1M select   2   0:00   0.00% sshd
+13167 hywu1337      1  20    0    20M  6356K ttyin    3   0:00   0.00% tcsh
+15719 hywu1337      1  20    0    19M  6200K pause    2   0:00   0.00% tcsh
+14923 kuojc666      1  20    0    41M  6180K select   0   0:01   9.99% sshd
+15952 hywu1337      1  20    0    19M  6176K pause    3   0:00   0.00% tcsh
+14862 kuojc666      1  52    0    41M  5976K select   3   0:00   9.13% sshd
+  882 root          1  20    0    19M  5824K select   2   0:02   0.00% sshd
+44524 kuohh         1  20    0    17M  5360K select   0   0:00   0.00% ssh
+16227 hywu1337      1  20    0    12M  3376K CPU2     2   0:00   0.00% top
+  770 root          2  20    0    20M  3340K select   0   2:00   3.33% vmtoolsd
+12118  18196        1  20    0    56M  2756K select   0   0:12   0.00% vim
+ 9574  18491        1  20    0    13M  2632K pause    0   0:00   0.00% tcsh
+79575 hywu1337      1  20    0    13M  2480K select   2   0:02   0.00% tmux
+ 1858  18366        1  20    0    14M  2468K select   0   0:03   5.54% tmux
+ 7767  18196        1  20    0    14M  2444K select   3   0:08   6.12% tmux
+16050 root          1  20    0    11M  2420K ttyin    3   0:00   0.00% getty
+  741 root          1  20    0   273M  2376K select   3   0:00   5.44% rpc.statd
+ 3676  18366        1  20    0    14M  2328K ttyin    1   0:00   0.00% tcsh
+ 7771  18196        1  20    0    15M  2324K ttyin    1   0:00   0.00% tcsh
+ 1859  18366        1  20    0    14M  2324K ttyin    2   0:00   0.00% tcsh
+ 2001  18366        1  21    0    14M  2324K ttyin    3   0:00   0.00% tcsh
+ 2010  18366        1  20    0    14M  2324K ttyin    2   0:00   0.00% tcsh
+16016  18366        1  20    0    14M  2324K ttyin    2   0:00   0.00% tcsh
+43453  18366        1  20    0    14M  2324K ttyin    3   0:00   0.00% tcsh
+43419  18366        1  20    0    14M  2324K ttyin    0   0:00   0.00% tcsh
+81697 hywu1337      1  20    0    13M  2324K ttyin    0   0:00   0.00% tcsh
+79576 hywu1337      1  20    0    13M  2324K ttyin    0   0:00   0.00% tcsh
+81692 hywu1337      1  21    0    13M  2324K ttyin    2   0:00   0.00% tcsh
+14924 kuojc666      1  20    0    13M  2324K ttyin    1   0:00   0.00% tcsh
+  935 root          1  20    0    11M  2244K ttyin    2   0:00   0.00% getty
+  693 root          1  20    0    11M  2192K select   2   0:00   0.00% rpcbind
+  584 root          1  20    0    11M  2148K select   2   0:25   0.00% syslogd
+  509 _pflogd       1  20    0    12M  2100K bpf      1   0:06   0.00% pflogd
+  696 root          1  20    0    23M  2084K select   2   0:01   0.00% ypbind
+  912 root          1  52    0    17M  2064K select   3   0:00   0.00% inetd
+16162  18366        1  20    0    13M  2028K ttyin    2   0:00   0.00% ee
+ 2035  18366        1  20    0    12M  2028K ttyin    0   0:00   0.00% ee
+ 2715  18366        1  20    0    12M  2028K ttyin    2   0:00   0.00% ee
+  936 root          1  52    0    11M  2000K ttyin    0   0:00   0.00% getty
+  940 root          1  52    0    11M  2000K ttyin    0   0:00   0.00% getty
+  941 root          1  52    0    11M  2000K ttyin    1   0:00   0.00% getty
+  939 root          1  52    0    11M  2000K ttyin    2   0:00   0.00% getty
+  938 root          1  52    0    11M  2000K ttyin    3   0:00   0.00% getty
+  937 root          1  52    0    11M  2000K ttyin    2   0:00   0.00% getty
+  900 root          4  52    0    10M  1996K rpcsvc   2   0:00   0.00% nfscbd
+  706 root          1  20    0    11M  1952K autofs   2   0:00   0.00% automountd
+  749 root          1  52    0    17M  1840K rpcsvc   3   0:00   0.00% rpc.lockd
+  885 root          1  20    0    17M  1012K nanslp   2   0:01   0.00% cron
+  712 root          1  20    0    11M   908K kqread   2   0:00   0.00% autounmountd
+  480 root          1  20    0    10M   672K select   0   0:08   0.00% devd
+ 1880  18366        1  20    0    15M      0 pause    0   0:00   0.00% <tcsh>
+ 7768  18196        1  20    0    15M      0 pause    0   0:00   0.00% <tcsh>
+40252 kuohh         1  26    0    14M      0 wait     1   0:00   0.00% <bash>
+ 1957  18366        1  20    0    14M      0 pause    2   0:00   0.00% <tcsh>
+ 3683  18366        1  20    0    13M      0 pause    2   0:00   0.00% <tcsh>
+  498 root          1  52    0    12M      0 sbwait   3   0:00   0.00% <pflogd>
+  841 nobody        1  20    0    11M      0 accept   2   0:00   0.00% <psalld>
+  899 root          1  52    0    10M      0 accept   2   0:00   0.00% <nfscbd>
+
