@@ -119,13 +119,31 @@ _delete() {    # syntax: zfsbak -d|--delete [DATASET|ID|DATASET ID]
     done
 }
 
-_export() {    # syntax: zfsbak -e|--export DATASET [ID]
-:
-}
+_export() {(    # syntax: zfsbak -e|--export DATASET [ID]
+    if [ -n "$2" ]; then id=$2; else id=1; fi
+    # find snapshot to export (empty if none match)
+    snapname=$(
+        zfs list -H -o name,custom:dataset,custom:id -t snapshot |
+        awk -v snap=$1 -v dataset=$1 -v id=$id '
+            $2==dataset && $3==id  { print $1 }
+            #{ print "DEFAULT "$0 }
+            #BEGIN { print "DATASET="dataset", ID="id }
+        ' )
+    if [ -z "$snapname" ]; then return; fi   # no matching snapshot
+    # export snapshot
+    if [ ! -d "$HOME/mypool/" ]; then mkdir ~/mypool; fi
+    zfs send "$snapname" > "$HOME/$snapname"
+    echo "Export $snapname to ~/$snapname"
+)}
 
-_import() {    # syntax: zfsbak -i|--import FILENAME DATASET
-:
-}
+_import() {(    # syntax: zfsbak -i|--import FILENAME DATASET
+    snap_file=$1
+    target_dataset=$2
+    sudo zfs recv "$target_dataset" < "$snap_file"
+    #zfs list
+    #zfs mount "$target_dataset"
+    echo "Import $snap_file to $target_dataset"
+)}
 
 _help() {
     echo "Usage:"
@@ -136,13 +154,13 @@ _help() {
     echo "- import: zfsbak -i|--import FILENAME DATASET"
 }
 
-next_snapshot_id() {    # usage: $(next_snapshot_id)
-	local largest_id=$(zfs list -H -o custom:id -t snapshot -s custom:id | tail -1)    # list snapshots in descending order
+next_snapshot_id() {(    # usage: $(next_snapshot_id)
+	largest_id=$(zfs list -H -o custom:id -t snapshot -s custom:id | tail -1)    # list snapshots in ascending order and take the last one
 	if [ "$largest_id" = "-" ] ; then
 		echo 1    # the first snapshot
 	else
 		echo $((largest_id+1))
 	fi
-}
+)}
 
-main $@
+main "$@"
