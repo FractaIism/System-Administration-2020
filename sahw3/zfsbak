@@ -1,0 +1,148 @@
+#!/usr/local/bin/bash
+
+main() {
+    # prepend _ to function names to prevent collision with bash keywords
+	case $1 in    # using fallthrough
+		-l) ;& --list)    shift && _list $@ ;;
+		-d) ;& --delete)  shift && _delete $@ ;;
+		-e) ;& --export)  shift && _export $@ ;;
+		-i) ;& --import)  shift && _import $@ ;;
+        "")               _help ;;
+		*)                _create $@ ;;
+	esac
+}
+
+_create() {    # syntax: zfsbak DATASET [ROTATION_CNT]
+
+	# gather info
+    dataset=$1
+	rotation_count=$2
+	[ -n "$rotation_count" ] || rotation_count=20    # default max 20 snapshots if rotation_count not specified
+	datetime=`date -j +'%Y-%m-%d-%H:%M:%S'`
+	snapname=$dataset@$datetime
+	new_id=$(next_snapshot_id)
+
+    # delete old snapshots
+    local destroy_list
+    destroy_list=$(
+	    zfs list -H -o name -t snapshot -S creation -r $dataset |    # list snapshots in descending order of creation (newest first)
+        awk -v rc=$rotation_count 'NR>=rc { print $1 }'    # get snapshot entries to destroy (get one more to make up for the newly made snapshot)
+    )
+    echo "Snap $snapname"    # print snapshot create (print early to conform to spec)
+    if [ -n "$destroy_list" ] ; then
+        echo $destroy_list | xargs -n1 -I% echo "Destroy %"
+        echo $destroy_list | xargs -n1 zfs destroy    # destroy snapshots
+    fi
+
+    # create snapshot
+    zfs snapshot $snapname
+	#echo "Snap $snapname" >> /var/log/zfsbak.log    # log snapshot create
+
+	# set user properties on snapshot for zfsbak --list
+	zfs set custom:id=$new_id $snapname
+	zfs set custom:dataset=$dataset $snapname
+	zfs set custom:time=$datetime $snapname
+
+}
+
+_list() {    # syntax: zfsbak -l|--list [DATASET|ID|DATASET ID]
+
+    local formatSpec='%-4s%-15s%s\n'
+
+	case $# in    # number of arguments passed to function
+	0)  # zfsbak -l
+		zfs list -H -o custom:id,custom:dataset,custom:time -t snapshot -s custom:time |
+        awk -v formatSpec=$formatSpec '
+            BEGIN  { printf formatSpec,"ID","DATASET","TIME" }
+            NR>=1  { printf formatSpec,$1,$2,$3 }
+        ' ;;
+	1)  # zfsbak -l [DATASET|ID]
+		case $1 in
+        [0-9]*)    # zfsbak -l ID
+            zfs list -H -o custom:id,custom:dataset,custom:time -t snapshot -s custom:time |
+            awk -v id=$1 -v formatSpec=$formatSpec '
+                BEGIN  { printf formatSpec,"ID","DATASET","TIME" }
+                $1==id { printf formatSpec,$1,$2,$3 }
+            ' ;;
+        *)  # zfsbak -l DATASET
+            zfs list -H -o custom:id,custom:dataset,custom:time -t snapshot -s custom:time |
+            awk -v dataset=$1 -v formatSpec=$formatSpec '
+                BEGIN  { printf formatSpec,"ID","DATASET","TIME" }
+                $2==dataset  { printf formatSpec,$1,$2,$3 }
+            ' ;;
+		esac ;;
+	2)  # zfsbak -l DATASET ID
+		zfs list -H -o custom:id,custom:dataset,custom:time -t snapshot -s custom:time |
+		awk -v id=$2 -v dataset=$1 -v formatSpec=$formatSpec '
+            BEGIN  { printf formatSpec,"ID","DATASET","TIME" }
+            $1==id && $2==dataset  { printf formatSpec,$1,$2,$3 }
+        ' ;;
+	*) echo "Wrong number of arguments" ;;
+	esac
+
+}
+
+_delete() {    # syntax: zfsbak -d|--delete [DATASET|ID|DATASET ID]
+
+    local destroy_list
+	case $# in
+		0)  # zfsbak -d
+            destroy_list=$(
+                zfs list -H -o name -t snapshot |    # get names of all snapshots
+                egrep '^mypool'    # grab only snapshots in mypool
+            ) ;;
+		1)  # zfsbak -d [DATASET|ID]
+			case $1 in
+            [0-9]*)    # zfsbak -d ID
+                destroy_list=$(
+                    zfs list -H -o name,custom:id -t snapshot |
+                    awk -v id=$1 '$2==id && $1~/^mypool/  { print $1 }'   # grab matching snapshots in mypool
+                ) ;;
+            *)    # zfsbak -d DATASET
+                destroy_list=$(
+                    zfs list -H -o name,custom:dataset -t snapshot |
+                    awk -v dataset=$1 '$2==dataset && $1~/^mypool/  { print $1 }'
+                ) ;;
+			esac ;;
+		2)  # zfsbak -d DATASET ID
+            destroy_list=$(
+                zfs list -H -o name,custom:dataset,custom:id -t snapshot |
+                awk -v dataset=$1 -v id=$2  '$2==dataset && $3==id && $1~/^mypool/  { print $1 }'
+            ) ;;
+		*) echo "Wrong number of arguments" 1&>2 ;;
+	esac
+
+    # destroy snapshots
+    for snap in $destroy_list ; do
+        echo "Destroy $snap"
+        zfs destroy $snap
+    done
+}
+
+_export() {    # syntax: zfsbak -e|--export DATASET [ID]
+:
+}
+
+_import() {    # syntax: zfsbak -i|--import FILENAME DATASET
+:
+}
+
+_help() {
+    echo "Usage:"
+    echo "- create: zfsbak DATASET [ROTATION_CNT]"
+    echo "- list: zfsbak -l|--list [DATASET|ID|DATASET ID]"
+    echo "- delete: zfsbak -d|--delete [DATASET|ID|DATASET ID]"
+    echo "- export: zfsbak -e|--export DATASET [ID]"
+    echo "- import: zfsbak -i|--import FILENAME DATASET"
+}
+
+next_snapshot_id() {    # usage: $(next_snapshot_id)
+	local largest_id=$(zfs list -H -o custom:id -t snapshot -s custom:id | tail -1)    # list snapshots in descending order
+	if [ "$largest_id" = "-" ] ; then
+		echo 1    # the first snapshot
+	else
+		echo $((largest_id+1))
+	fi
+}
+
+main $@
