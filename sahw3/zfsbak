@@ -1,5 +1,7 @@
 #!/usr/local/bin/bash
 
+logfile="/var/log/zfsbak.log"
+
 main() {
     # prepend _ to function names to prevent collision with bash keywords
 	case $1 in    # using fallthrough
@@ -12,7 +14,7 @@ main() {
 	esac
 }
 
-_create() {    # syntax: zfsbak DATASET [ROTATION_CNT]
+_create() {(    # syntax: zfsbak DATASET [ROTATION_CNT]
 
 	# gather info
     dataset=$1
@@ -23,31 +25,33 @@ _create() {    # syntax: zfsbak DATASET [ROTATION_CNT]
 	new_id=$(next_snapshot_id)
 
     # delete old snapshots
-    local destroy_list
     destroy_list=$(
 	    zfs list -H -o name -t snapshot -S creation -r $dataset |    # list snapshots in descending order of creation (newest first)
         awk -v rc=$rotation_count 'NR>=rc { print $1 }'    # get snapshot entries to destroy (get one more to make up for the newly made snapshot)
     )
-    echo "Snap $snapname"    # print snapshot create (print early to conform to spec)
-    if [ -n "$destroy_list" ] ; then
-        echo $destroy_list | xargs -n1 -I% echo "Destroy %"
-        echo $destroy_list | xargs -n1 zfs destroy    # destroy snapshots
+    echo "Snap $snapname" | sudo tee -a "$logfile"   # print and log snapshot create (print early to conform to spec)
+    #if [ -n "$destroy_list" ] ; then
+    #    echo $destroy_list | xargs -n1 -I% echo "Destroy %"
+    #    echo $destroy_list | xargs -n1 zfs destroy    # destroy snapshots
+    #fi
+    if [ -n "$destroy_list" ]; then
+        for snap in $destroy_list; do
+            echo "Destroy $snap" | sudo tee -a "$logfile"
+            sudo zfs destroy "$snap"
+        done
     fi
 
     # create snapshot
-    zfs snapshot $snapname
-	#echo "Snap $snapname" >> /var/log/zfsbak.log    # log snapshot create
+    sudo zfs snapshot $snapname
 
 	# set user properties on snapshot for zfsbak --list
-	zfs set custom:id=$new_id $snapname
-	zfs set custom:dataset=$dataset $snapname
-	zfs set custom:time=$datetime $snapname
+	sudo zfs set custom:id=$new_id custom:dataset=$dataset custom:time=$datetime $snapname
 
-}
+)}
 
-_list() {    # syntax: zfsbak -l|--list [DATASET|ID|DATASET ID]
+_list() {(    # syntax: zfsbak -l|--list [DATASET|ID|DATASET ID]
 
-    local formatSpec='%-4s%-15s%s\n'
+    formatSpec='%-4s%-15s%s\n'
 
 	case $# in    # number of arguments passed to function
 	0)  # zfsbak -l
@@ -80,11 +84,10 @@ _list() {    # syntax: zfsbak -l|--list [DATASET|ID|DATASET ID]
 	*) echo "Wrong number of arguments" ;;
 	esac
 
-}
+)}
 
-_delete() {    # syntax: zfsbak -d|--delete [DATASET|ID|DATASET ID]
+_delete() {({    # syntax: zfsbak -d|--delete [DATASET|ID|DATASET ID]
 
-    local destroy_list
 	case $# in
 		0)  # zfsbak -d
             destroy_list=$(
@@ -114,10 +117,10 @@ _delete() {    # syntax: zfsbak -d|--delete [DATASET|ID|DATASET ID]
 
     # destroy snapshots
     for snap in $destroy_list ; do
-        echo "Destroy $snap"
-        zfs destroy $snap
+        echo "Destroy $snap" | sudo tee -a "$logfile"
+        sudo zfs destroy $snap
     done
-}
+})}
 
 _export() {(    # syntax: zfsbak -e|--export DATASET [ID]
     if [ -n "$2" ]; then id=$2; else id=1; fi
@@ -132,17 +135,18 @@ _export() {(    # syntax: zfsbak -e|--export DATASET [ID]
     if [ -z "$snapname" ]; then return; fi   # no matching snapshot
     # export snapshot
     if [ ! -d "$HOME/mypool/" ]; then mkdir ~/mypool; fi
-    zfs send "$snapname" > "$HOME/$snapname"
-    echo "Export $snapname to ~/$snapname"
+    #zfs send "$snapname" > "$HOME/$snapname"
+    #gzip < "$HOME/$snapname" > "$HOME/$snapname.gz"
+    #openssl enc -e -aes256 -in "$HOME/$snapname.gz" -out "$HOME/$snapname.gz.enc"
+    zfs send -p "$snapname" | gzip | openssl enc -e -aes256 > "$HOME/$snapname.gz.enc"
+    echo "Export $snapname to ~/$snapname" | sudo tee -a "$logfile"
 )}
 
 _import() {(    # syntax: zfsbak -i|--import FILENAME DATASET
     snap_file=$1
     target_dataset=$2
-    sudo zfs recv "$target_dataset" < "$snap_file"
-    #zfs list
-    #zfs mount "$target_dataset"
-    echo "Import $snap_file to $target_dataset"
+    openssl enc -d -aes256 < "$snap_file" | gzip -d | sudo zfs recv "$target_dataset"    # need sudo to prevent "failed to create mountpoint" error
+    echo "Import $snap_file to $target_dataset" | sudo tee -a "$logfile"
 )}
 
 _help() {
@@ -155,7 +159,8 @@ _help() {
 }
 
 next_snapshot_id() {(    # usage: $(next_snapshot_id)
-	largest_id=$(zfs list -H -o custom:id -t snapshot -s custom:id | tail -1)    # list snapshots in ascending order and take the last one
+    # list snapshots in descending order and take the first one (sort by time because -s/-S uses lexicographic ordering)
+	largest_id=$(zfs list -H -o custom:id -t snapshot -S custom:time | head -1)
 	if [ "$largest_id" = "-" ] ; then
 		echo 1    # the first snapshot
 	else
